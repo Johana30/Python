@@ -61,21 +61,14 @@ choice = 'Y'
 #         print("the program ends. Thanks")
 
 #exe 5
-# while choice == 'Y':
-#     num = input("type a number: ")
-#     word=input("type the word to search: ")
-#     s = word.upper()
-#     if s in sentence:
-#         print(f"the word {word} is included in the sentence")
-#     else:
-#         print(f"the word {word} is not included in the sentence")
-#     choice = str(input("Continue ... y / n ")).upper()
-#     if choice == 'N':
-#         print("the program ends. Thanks")
+while choice == 'Y':
+    num = int(input("type a number: "))+1
 
-num = int(input("type a number: "))+1
+    for i in range(1,num):
+        for y in range(i):
+            print(i, end=" ")
+        print()
+    choice = str(input("Continue ... y / n ")).upper()
+    if choice == 'N':
+        print("the program ends. Thanks")
 
-for i in range(1,num):
-    for y in range(i):
-        print(i, end=" ")
-    print()
