@@ -15,7 +15,7 @@ while choice != 'y' or choice != 'Y':
     else:
         print("Please enter a valid input ")
 
-    choice = str(input("do you want to exit? y or n \n"))
-    if choice == 'y' or choice == 'Y':
+    choice = str(input("do you want to exit? y or n \n")).upper()
+    if choice == 'Y':
         print("the program ends. Thanks")
         exit()
