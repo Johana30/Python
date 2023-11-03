@@ -76,5 +76,6 @@ choice = 'Y'
 num = int(input("type a number: "))+1
 
 for i in range(1,num):
-    for y in range(1, i):
-        print(i, y)
+    for y in range(i):
+        print(i, end=" ")
+    print()
