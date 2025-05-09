@@ -1,0 +1,117 @@
+To achieve the goal of creating a CloudWatch dashboard with metric filters based on API keys and using Metric Math in Terraform, follow these steps. I'll guide you through the process of creating the required resources, including:
+
+1. **CloudWatch Log Group and Metric Filters** for each API key.
+2. **Custom CloudWatch Namespace**.
+3. **CloudWatch Dashboard** using Metric Math to flag keys with zero usage.
+
+Here’s the Terraform configuration for your requirements:
+
+### 1. **Define the CloudWatch Log Group and Metric Filters**
+
+First, you need to create the log group where logs are stored. Then, create metric filters based on each API key, where the filter pattern looks for `$.api_keyid`.
+
+```hcl
+provider "aws" {
+  region = "us-east-1"  # Set your AWS region
+}
+
+# CloudWatch Log Group
+resource "aws_cloudwatch_log_group" "api_log_group" {
+  name = "/aws/lambda/api-log-group"  # Replace with your log group name
+}
+
+# API Key Metric Filters
+resource "aws_cloudwatch_log_metric_filter" "api_key_metric_filter_abc123" {
+  log_group_name = aws_cloudwatch_log_group.api_log_group.name
+  name           = "api-key-filter-abc123"
+  pattern        = '{ $.api_keyid = "abc123" }'
+
+  metric_transformation {
+    name      = "APIKeyUsage/abc123"
+    namespace = "APIKeyUsage"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_log_metric_filter" "api_key_metric_filter_def456" {
+  log_group_name = aws_cloudwatch_log_group.api_log_group.name
+  name           = "api-key-filter-def456"
+  pattern        = '{ $.api_keyid = "def456" }'
+
+  metric_transformation {
+    name      = "APIKeyUsage/def456"
+    namespace = "APIKeyUsage"
+    value     = "1"
+  }
+}
+```
+
+This example defines two filters for the API keys `"abc123"` and `"def456"`. Modify these as needed for more keys.
+
+### 2. **Create the CloudWatch Dashboard with Metric Math**
+
+Next, create the CloudWatch dashboard and include a widget that uses Metric Math to flag API keys with zero usage.
+
+```hcl
+resource "aws_cloudwatch_dashboard" "api_dashboard" {
+  dashboard_name = "api-dashboard"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        width  = 12
+        height = 6
+        type   = "metric"
+        properties = {
+          metrics = [
+            [
+              { "expression" = "IF(m1 < 1, 1, 0)" }
+            ],
+            [
+              "APIKeyUsage",
+              "abc123",
+              "Count"
+            ],
+            [
+              "APIKeyUsage",
+              "def456",
+              "Count"
+            ]
+          ]
+          region = "us-east-1"  # Specify your region
+          title  = "API Key Usage Dashboard"
+        }
+      }
+    ]
+  })
+}
+```
+
+### Explanation:
+
+* **Metric Filters**: The `aws_cloudwatch_log_metric_filter` resource listens for specific API key values in your log group and converts them into CloudWatch metrics.
+* **CloudWatch Dashboard**: The `aws_cloudwatch_dashboard` resource creates a dashboard with a widget. It uses Metric Math to apply a formula that flags usage below 1 (`IF(m1 < 1, 1, 0)`), effectively marking API keys with zero usage.
+
+### 3. **Deploy the Terraform Configuration**
+
+1. Save the configuration to a `.tf` file.
+
+2. Initialize Terraform with the following command:
+
+   ```bash
+   terraform init
+   ```
+
+3. Apply the configuration:
+
+   ```bash
+   terraform apply
+   ```
+
+### Additional Notes:
+
+* You can expand the metric filters for more API keys by duplicating the `aws_cloudwatch_log_metric_filter` resource.
+* You can customize the widgets, colors, and layout of the dashboard according to your needs.
+* The Metric Math expression `IF(m1 < 1, 1, 0)` returns `1` if the count of usage is below 1 (indicating no usage), and `0` otherwise.
+
+This will create a CloudWatch dashboard that visually flags API keys with zero usage. Let me know if you need any adjustments!
